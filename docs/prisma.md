@@ -1,4 +1,3 @@
-
 # Prisma
 
 ## good to know
@@ -6,6 +5,8 @@
 as we use multiple database, error handling with as described [here](https://www.prisma.io/docs/orm/prisma-client/debugging-and-troubleshooting/handling-exceptions-and-errors) will be IMPOSIBLE for now.
 
 as example as we use `PrismaClientKnownRequestError` it will be depend on which client we generate. it is because `Prisma.PrismaClientKnownRequestError` will refer to the last generate client
+
+as solution we create `PrismaCustomError`
 
 ## CREATE USER
 
