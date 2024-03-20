@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+  //output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_PPDB_URL")
+}
+
+model dokumen {
+  id                 String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  url_dokumen        String        @db.VarChar
+  tipe_dokumen       String        @db.VarChar
+  jenis_dokumen_id   String        @db.Uuid
+  pendaftaran_id     String        @db.Uuid
+  tanggal_unggah     DateTime      @db.Date
+  status_verifikasi  String        @db.VarChar
+  tanggal_verifikasi DateTime?     @db.Date
+  diverifikasi_oleh  String?       @db.VarChar
+  catatan            String?       @db.VarChar
+  created_at         DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?     @default(now()) @db.Timestamp(6)
+  jenis_dokumen      jenis_dokumen @relation(fields: [jenis_dokumen_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pendaftaran        pendaftaran   @relation(fields: [pendaftaran_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model jenis_dokumen {
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nama                    String    @db.VarChar
+  deskripsi               String    @db.VarChar
+  diperlukan              Boolean
+  tipe_file_diperbolehkan String[]  @db.VarChar
+  created_at              DateTime? @default(now()) @db.Timestamp(6)
+  updated_at              DateTime? @default(now()) @db.Timestamp(6)
+  dokumen                 dokumen[]
+}
+
+model ortu {
+  id                        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nama                      String    @db.VarChar
+  nik                       String?   @db.Char(16)
+  tahun_lahir               Int?
+  pendidikan                String?   @db.VarChar
+  pekerjaan                 String?   @db.VarChar
+  penghasilan               Decimal?  @db.Decimal
+  created_at                DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                DateTime? @default(now()) @db.Timestamp(6)
+  siswa_siswa_ayah_idToortu siswa[]   @relation("siswa_ayah_idToortu")
+  siswa_siswa_ibu_idToortu  siswa[]   @relation("siswa_ibu_idToortu")
+  siswa_siswa_wali_idToortu siswa[]   @relation("siswa_wali_idToortu")
+}
+
+model pendaftaran {
+  id             String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sekolah_id     String      @db.Uuid
+  siswa_id       String      @db.Uuid
+  ppdb_id        String      @db.Uuid
+  tanggal_daftar DateTime    @db.Date
+  status         String      @db.VarChar
+  catatan        String?     @db.VarChar
+  created_at     DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at     DateTime?   @default(now()) @db.Timestamp(6)
+  dokumen        dokumen[]
+  ppdb           ppdb        @relation(fields: [ppdb_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sekolah        sekolah     @relation(fields: [sekolah_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  siswa          siswa       @relation(fields: [siswa_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  penilaian      penilaian[]
+}
+
+model penilaian {
+  id             String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tahapan_id     String      @db.Uuid
+  pendaftaran_id String      @db.Uuid
+  nilai          Decimal     @db.Decimal
+  keterangan     String      @db.VarChar
+  created_at     DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at     DateTime?   @default(now()) @db.Timestamp(6)
+  pendaftaran    pendaftaran @relation(fields: [pendaftaran_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tahapan        tahapan     @relation(fields: [tahapan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ppdb {
+  id           String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sekolah_id   String        @db.Uuid
+  tahun        Int
+  tahun_ajaran String        @db.VarChar
+  created_at   DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at   DateTime?     @default(now()) @db.Timestamp(6)
+  pendaftaran  pendaftaran[]
+  sekolah      sekolah       @relation(fields: [sekolah_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tahapan      tahapan[]
+}
+
+model sekolah {
+  id                String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nama              String        @db.VarChar
+  npsn              String?       @db.Char(8)
+  status            String?       @db.VarChar
+  bentuk_pendidikan Int?
+  alamat            String        @db.VarChar
+  kode_pos          String?       @db.VarChar
+  telp              String?       @db.VarChar
+  email             String?       @db.VarChar
+  website           String?       @db.VarChar
+  akreditasi        String?       @db.VarChar
+  kurikulum         String?       @db.VarChar
+  visi              String?       @db.VarChar
+  misi              String?       @db.VarChar
+  fasilitas         String[]      @db.VarChar
+  logo              String?       @db.VarChar
+  created_at        DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?     @default(now()) @db.Timestamp(6)
+  pendaftaran       pendaftaran[]
+  ppdb              ppdb[]
+}
+
+model siswa {
+  id                       String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nama                     String        @db.VarChar
+  kk                       String?       @db.Char(16)
+  nik                      String?       @db.Char(16)
+  nisn                     String?       @db.Char(10)
+  tempat_lahir             String        @db.VarChar
+  tanggal_lahir            DateTime      @db.Date
+  jenis_kelamin            jenis_kelamin
+  agama                    String        @db.VarChar
+  golongan_darah           String?       @db.VarChar
+  alamat                   String        @db.VarChar
+  tahun_masuk              Int
+  pindahan                 Boolean       @default(false)
+  sekolah_asal             Json?
+  ayah_id                  String?       @db.Uuid
+  ibu_id                   String?       @db.Uuid
+  wali_id                  String?       @db.Uuid
+  kontak_darurat_nama      String?       @db.VarChar
+  kontak_darurat_hubungan  String?       @db.VarChar
+  kontak_darurat_telepon   String?       @db.VarChar
+  created_at               DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at               DateTime?     @default(now()) @db.Timestamp(6)
+  pendaftaran              pendaftaran[]
+  ortu_siswa_ayah_idToortu ortu?         @relation("siswa_ayah_idToortu", fields: [ayah_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ortu_siswa_ibu_idToortu  ortu?         @relation("siswa_ibu_idToortu", fields: [ibu_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ortu_siswa_wali_idToortu ortu?         @relation("siswa_wali_idToortu", fields: [wali_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tahapan {
+  id              String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  ppdb_id         String      @db.Uuid
+  nama            String      @db.VarChar
+  deskripsi       String      @db.VarChar
+  tanggal_mulai   DateTime    @db.Date
+  tanggal_selesai DateTime    @db.Date
+  created_at      DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at      DateTime?   @default(now()) @db.Timestamp(6)
+  penilaian       penilaian[]
+  ppdb            ppdb        @relation(fields: [ppdb_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+enum jenis_kelamin {
+  Laki_laki @map("Laki-laki")
+  Perempuan
+}
